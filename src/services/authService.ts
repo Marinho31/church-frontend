@@ -72,6 +72,8 @@ export const authService = {
 
       return response.data.user;
     } catch (error: any) {
+      console.error('Erro detalhado:', error);
+      
       // Incrementar contador de tentativas apenas se o erro não for de conexão
       if (error.response) {
         const { attempts } = getLoginAttempts(credentials.email);
@@ -93,13 +95,18 @@ export const authService = {
           `Erro ao fazer login. Tentativas restantes: ${MAX_LOGIN_ATTEMPTS - (attempts + 1)}`
         );
       }
-      throw new Error('Erro de conexão com o servidor. Por favor, verifique sua conexão e tente novamente.');
+      
+      if (error.code === 'ERR_NETWORK') {
+        throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão com a internet.');
+      }
+      
+      throw new Error('Erro ao fazer login. Por favor, tente novamente.');
     }
   },
 
   logout: async () => {
     try {
-      await api.post('/authentication/log-out');
+      await api.post('/api/authentication/log-out');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     } finally {

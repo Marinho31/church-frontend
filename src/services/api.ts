@@ -1,12 +1,10 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://api-dev-syncchurch.up.railway.app',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
-    'Accept': '*/*',
-    'Accept-Encoding': 'gzip, deflate',
-    'Connection': 'keep-alive'
+    'Accept': 'application/json'
   },
   withCredentials: true
 });
