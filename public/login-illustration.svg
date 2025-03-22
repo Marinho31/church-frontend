@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="500" height="400" viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Mobile Device -->
+    <rect x="150" y="50" width="200" height="350" rx="20" fill="#00A3FF"/>
+    <rect x="160" y="60" width="180" height="330" rx="15" fill="white"/>
+    
+    <!-- User Interface Elements -->
+    <circle cx="250" cy="150" r="25" fill="#00A3FF" opacity="0.1"/>
+    <rect x="200" y="200" width="100" height="12" rx="6" fill="#00A3FF" opacity="0.1"/>
+    <rect x="200" y="220" width="100" height="12" rx="6" fill="#00A3FF" opacity="0.1"/>
+    
+    <!-- People Icons -->
+    <g transform="translate(100,150)">
+        <circle cx="0" cy="0" r="20" fill="#00A3FF"/>
+        <path d="M -15 40 L 15 40" stroke="#00A3FF" stroke-width="2"/>
+    </g>
+    
+    <g transform="translate(400,150)">
+        <circle cx="0" cy="0" r="20" fill="#00A3FF"/>
+        <path d="M -15 40 L 15 40" stroke="#00A3FF" stroke-width="2"/>
+    </g>
+    
+    <!-- Arrows -->
+    <path d="M 320 200 L 350 200 L 340 190 M 350 200 L 340 210" stroke="#00A3FF" stroke-width="2"/>
+    <path d="M 180 200 L 150 200 L 160 190 M 150 200 L 160 210" stroke="#00A3FF" stroke-width="2"/>
+</svg> 
