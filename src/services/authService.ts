@@ -18,8 +18,8 @@ interface LoginCredentials {
   password: string;
 }
 
-const MAX_LOGIN_ATTEMPTS = 3;
-const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos em milissegundos
+const MAX_LOGIN_ATTEMPTS = 50;
+const LOCKOUT_TIME = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
 
 const getLoginAttempts = (email: string): { attempts: number; timestamp: number } => {
   const attemptsStr = localStorage.getItem(`loginAttempts_${email}`);
@@ -92,7 +92,7 @@ export const authService = {
 
         throw new Error(
           error.response.data.message || 
-          `Erro ao fazer login. Tentativas restantes: ${MAX_LOGIN_ATTEMPTS - (attempts + 1)}`
+          'Erro ao fazer login. Por favor, tente novamente.'
         );
       }
       
