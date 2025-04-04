@@ -65,6 +65,13 @@ const Menu: React.FC = () => {
       path: '/calendar',
       color: '#2e7d32',
       description: 'Agenda de eventos e atividades'
+    },
+    {
+      title: 'Eventos',
+      icon: <CalendarIcon sx={{ fontSize: 40 }} />,
+      path: '/events',
+      color: '#9c27b0',
+      description: 'Gerenciar eventos da igreja'
     }
   ];
 
