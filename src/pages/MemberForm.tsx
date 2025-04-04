@@ -16,7 +16,7 @@ import {
 import { memberService, Member, MemberRole, Sex, CivilState } from '../services/memberService';
 
 // Enums
-const MemberRoles = {
+const MemberRoles: Record<MemberRole, string> = {
   MEMBER: 'Membro',
   COLLABORATOR: 'Colaborador',
   PASTOR: 'Pastor',
@@ -25,12 +25,12 @@ const MemberRoles = {
   DEACON: 'Diácono'
 } as const;
 
-const SexOptions = {
+const SexOptions: Record<Sex, string> = {
   MALE: 'Masculino',
   FEMALE: 'Feminino'
 } as const;
 
-const CivilStates = {
+const CivilStates: Record<CivilState, string> = {
   SINGLE: 'Solteiro(a)',
   MARRIED: 'Casado(a)',
   DIVORCED: 'Divorciado(a)',
