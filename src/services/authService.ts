@@ -18,8 +18,8 @@ interface LoginCredentials {
   password: string;
 }
 
-const MAX_LOGIN_ATTEMPTS = 3;
-const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos em milissegundos
+const MAX_LOGIN_ATTEMPTS = 50;
+const LOCKOUT_TIME = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
 
 const getLoginAttempts = (email: string): { attempts: number; timestamp: number } => {
   const attemptsStr = localStorage.getItem(`loginAttempts_${email}`);
@@ -72,6 +72,8 @@ export const authService = {
 
       return response.data.user;
     } catch (error: any) {
+      console.error('Erro detalhado:', error);
+      
       // Incrementar contador de tentativas apenas se o erro não for de conexão
       if (error.response) {
         const { attempts } = getLoginAttempts(credentials.email);
@@ -90,16 +92,21 @@ export const authService = {
 
         throw new Error(
           error.response.data.message || 
-          `Erro ao fazer login. Tentativas restantes: ${MAX_LOGIN_ATTEMPTS - (attempts + 1)}`
+          'Erro ao fazer login. Por favor, tente novamente.'
         );
       }
-      throw new Error('Erro de conexão com o servidor. Por favor, verifique sua conexão e tente novamente.');
+      
+      if (error.code === 'ERR_NETWORK') {
+        throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão com a internet.');
+      }
+      
+      throw new Error('Erro ao fazer login. Por favor, tente novamente.');
     }
   },
 
   logout: async () => {
     try {
-      await api.post('/authentication/log-out');
+      await api.post('/api/authentication/log-out');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     } finally {

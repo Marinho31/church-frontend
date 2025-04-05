@@ -6,6 +6,7 @@ import Menu from './pages/Menu';
 import MemberForm from './pages/MemberForm';
 import MemberList from './pages/MemberList';
 import Calendar from './pages/Calendar';
+import EventList from './pages/EventList';
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
         <Route path="/members/new" element={<MemberForm />} />
         <Route path="/members/list" element={<MemberList />} />
         <Route path="/calendar" element={<Calendar />} />
+        <Route path="/events" element={<EventList />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/menu" replace />} />
       </Routes>
