@@ -23,6 +23,50 @@ import {
 import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import { eventService, Event } from '../services/eventService';
 
+// Dados mockados para visualização inicial
+const mockEvents: Event[] = [
+  {
+    id: 1,
+    name: 'Culto de Domingo',
+    description: 'Culto dominical com Santa Ceia',
+    date: '2024-03-24T09:00:00.000Z',
+    churchId: 1,
+    active: true
+  },
+  {
+    id: 2,
+    name: 'Escola Bíblica',
+    description: 'Aulas para todas as idades',
+    date: '2024-03-24T08:00:00.000Z',
+    churchId: 1,
+    active: true
+  },
+  {
+    id: 3,
+    name: 'Culto de Oração',
+    description: 'Momento especial de intercessão',
+    date: '2024-03-26T19:30:00.000Z',
+    churchId: 1,
+    active: true
+  },
+  {
+    id: 4,
+    name: 'Ensaio do Coral',
+    description: 'Preparação para apresentação especial',
+    date: '2024-03-27T20:00:00.000Z',
+    churchId: 1,
+    active: true
+  },
+  {
+    id: 5,
+    name: 'Vigília',
+    description: 'Noite de oração e adoração',
+    date: '2024-03-29T23:00:00.000Z',
+    churchId: 1,
+    active: true
+  }
+];
+
 const EventList = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,11 +83,11 @@ const EventList = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await eventService.getAll();
-      setEvents(data);
+      // Usando dados mockados em vez de chamar a API
+      setEvents(mockEvents);
+      setLoading(false);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Erro ao carregar eventos');
-    } finally {
       setLoading(false);
     }
   };

@@ -11,6 +11,7 @@ interface User {
 
 interface LoginResponse {
   user: User;
+  token: string;
 }
 
 interface LoginCredentials {
@@ -67,7 +68,10 @@ export const authService = {
       // Limpar tentativas em caso de sucesso
       clearLoginAttempts(credentials.email);
 
-      // Salvar usuário no localStorage
+      // Salvar token e usuário no localStorage
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
       return response.data.user;
@@ -111,6 +115,7 @@ export const authService = {
       console.error('Erro ao fazer logout:', error);
     } finally {
       localStorage.removeItem('user');
+      localStorage.removeItem('token');
       window.location.href = '/login';
     }
   },
