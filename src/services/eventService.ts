@@ -14,6 +14,8 @@ interface EventFilters {
   page?: number;
   size?: number;
   name?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 class EventService {
@@ -30,92 +32,85 @@ class EventService {
   }
 
   async create(event: Omit<Event, 'id' | 'active'>) {
-    const headers = await this.getHeaders();
-    console.log('Debug - Creating event with headers:', headers);
-    
-    const response = await fetch(`${this.baseUrl}/event`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(event)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Debug - Error response:', errorText);
-      throw new Error(`Failed to create event: ${errorText}`);
+    try {
+      console.log('Debug - Creating event:', event);
+      const response = await api.post('/event', event);
+      console.log('Debug - Create response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Debug - Create error:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   async getAll(filters?: EventFilters) {
-    const params = new URLSearchParams();
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined) {
-          params.append(key, value.toString());
-        }
-      });
+    try {
+      console.log('Debug - Getting all events with filters:', filters);
+      const params = new URLSearchParams();
+      
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined) {
+            // Formata as datas corretamente
+            if (key === 'startDate' || key === 'endDate') {
+              // Remove os caracteres de escape da data
+              const formattedDate = value.toString().replace(/%3A/g, ':');
+              params.append(key, formattedDate);
+            } else {
+              params.append(key, value.toString());
+            }
+          }
+        });
+      }
+
+      // Só adiciona o ? se houver parâmetros
+      const queryString = params.toString();
+      const url = queryString ? `/event?${queryString}` : '/event';
+      
+      console.log('Debug - Request URL:', url); // Log da URL antes da chamada
+      const response = await api.get(url);
+      console.log('Debug - GetAll response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Debug - GetAll error:', error);
+      throw error;
     }
-
-    const headers = await this.getHeaders();
-    console.log('Debug - Getting all events with headers:', headers);
-
-    const response = await fetch(`${this.baseUrl}/event?${params.toString()}`, {
-      method: 'GET',
-      headers
-    });
-    
-   
-
-    console.log('Debug - Response status:', response.status);
-    console.log('Debug - Response headers:', [...response.headers.entries()]);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Debug - Error response:', errorText);
-      throw new Error(`Failed to fetch events: ${errorText}`);
-    }
-
-    return response.json();
   }
 
   async getById(id: number) {
-    const response = await fetch(`${this.baseUrl}/event/${id}`, {
-      method: 'GET',
-      headers: await this.getHeaders()
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch event');
+    try {
+      console.log('Debug - Getting event by id:', id);
+      const response = await api.get(`/event/${id}`);
+      console.log('Debug - GetById response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Debug - GetById error:', error);
+      throw error;
     }
-
-    return response.json();
   }
   
 
   async update(id: number, event: Partial<Omit<Event, 'id' | 'active' | 'churchId'>>) {
-    const response = await fetch(`${this.baseUrl}/event/${id}`, {
-      method: 'PATCH',
-      headers: await this.getHeaders(),
-      body: JSON.stringify(event)
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update event');
+    try {
+      console.log('Debug - Updating event:', id, event);
+      const response = await api.patch(`/event/${id}`, event);
+      console.log('Debug - Update response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Debug - Update error:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   async delete(id: number) {
-    const response = await fetch(`${this.baseUrl}/event/${id}`, {
-      method: 'DELETE',
-      headers: await this.getHeaders()
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to delete event');
+    try {
+      console.log('Debug - Deleting event:', id);
+      const response = await api.delete(`/event/${id}`);
+      console.log('Debug - Delete response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Debug - Delete error:', error);
+      throw error;
     }
   }
 }

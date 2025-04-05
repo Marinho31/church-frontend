@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -19,11 +20,14 @@ import {
   Box,
   Alert,
   CircularProgress,
+  Grid,
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
 import { eventService, Event } from '../services/eventService';
 
 const EventList = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,40 +39,126 @@ const EventList = () => {
     date: new Date().toISOString().split('T')[0],
   });
 
-  const loadEvents = async () => {
+  // Estado para filtros de data
+  const [filters, setFilters] = useState({
+    startDate: '',
+    endDate: '',
+  });
+
+  // Função para carregar todos os eventos sem filtros
+  const loadAllEvents = async () => {
     try {
+      console.log('Loading all events...'); // Debug log
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found, redirecting to login...'); // Debug log
+        navigate('/login', { replace: true });
+        return;
+      }
+
       setLoading(true);
       setError(null);
       
-      // Buscar eventos da API
-      const response = await fetch('http://localhost:3000/event', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao carregar eventos');
-      }
-
-      const responseData = await response.json();
-      console.log('Resposta da API:', responseData);
+      const response = await eventService.getAll();
+      console.log('All events loaded:', response); // Debug log
       
-      // Acessar o array de eventos dentro do objeto data
-      setEvents(responseData.data || []);
+      // Corrige o acesso aos dados da resposta
+      if (response && response.data) {
+        setEvents(response.data);
+      } else {
+        setEvents([]);
+      }
     } catch (err: any) {
-      console.error('Erro ao carregar eventos:', err);
+      console.error('Error loading events:', err);
       setError(err.message || 'Erro ao carregar eventos');
+      if (err.response?.status === 401) {
+        navigate('/login', { replace: true });
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // Função para carregar eventos com filtros de data
+  const loadFilteredEvents = async () => {
+    try {
+      console.log('Loading filtered events...'); // Debug log
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found, redirecting to login...'); // Debug log
+        navigate('/login', { replace: true });
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      
+      // Verifica se as datas foram preenchidas
+      if (!filters.startDate || !filters.endDate) {
+        setError('Por favor, selecione as datas inicial e final para filtrar');
+        setLoading(false);
+        return;
+      }
+      
+      // Converte as datas para o formato esperado pela API
+      const startDate = new Date(filters.startDate);
+      const endDate = new Date(filters.endDate);
+      
+      // Ajusta as horas para início e fim do dia
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      const apiFilters = {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      };
+      
+      console.log('Debug - Sending filters:', apiFilters); // Debug log
+      
+      const response = await eventService.getAll(apiFilters);
+      console.log('Filtered events loaded:', response); // Debug log
+      
+      // Corrige o acesso aos dados da resposta
+      if (response && response.data) {
+        setEvents(response.data);
+      } else {
+        setEvents([]);
+      }
+    } catch (err: any) {
+      console.error('Error loading filtered events:', err);
+      setError(err.message || 'Erro ao carregar eventos filtrados');
+      if (err.response?.status === 401) {
+        navigate('/login', { replace: true });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Carrega todos os eventos ao montar o componente
   useEffect(() => {
-    loadEvents();
-  }, []);
+    console.log('EventList mounted or location changed'); // Debug log
+    loadAllEvents();
+  }, [location.pathname]);
+
+  const handleFilterChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  const handleSearch = () => {
+    loadFilteredEvents();
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      startDate: '',
+      endDate: '',
+    });
+    loadAllEvents();
+  };
 
   const handleOpenDialog = (event?: Event) => {
     if (event) {
@@ -118,7 +208,7 @@ const EventList = () => {
       }
 
       handleCloseDialog();
-      loadEvents(); // Recarrega a lista após criar/atualizar
+      loadAllEvents(); // Recarrega a lista após criar/atualizar
     } catch (err: any) {
       setError(err.message || 'Erro ao salvar evento');
     } finally {
@@ -132,7 +222,7 @@ const EventList = () => {
         setLoading(true);
         setError(null);
         await eventService.delete(id);
-        loadEvents(); // Recarrega a lista após deletar
+        loadAllEvents(); // Recarrega a lista após deletar
       } catch (err: any) {
         setError(err.message || 'Erro ao excluir evento');
       } finally {
@@ -169,6 +259,54 @@ const EventList = () => {
             Novo Evento
           </Button>
         </Box>
+
+        {/* Filtros de data */}
+        <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                type="date"
+                label="Data Inicial"
+                value={filters.startDate}
+                onChange={handleFilterChange('startDate')}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                type="date"
+                label="Data Final"
+                value={filters.endDate}
+                onChange={handleFilterChange('endDate')}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<SearchIcon />}
+                  onClick={handleSearch}
+                >
+                  Buscar
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleClearFilters}
+                >
+                  Limpar
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </Paper>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
