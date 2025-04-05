@@ -23,50 +23,6 @@ import {
 import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import { eventService, Event } from '../services/eventService';
 
-// Dados mockados para visualização inicial
-const mockEvents: Event[] = [
-  {
-    id: 1,
-    name: 'Culto de Domingo',
-    description: 'Culto dominical com Santa Ceia',
-    date: '2024-03-24T09:00:00.000Z',
-    churchId: 1,
-    active: true
-  },
-  {
-    id: 2,
-    name: 'Escola Bíblica',
-    description: 'Aulas para todas as idades',
-    date: '2024-03-24T08:00:00.000Z',
-    churchId: 1,
-    active: true
-  },
-  {
-    id: 3,
-    name: 'Culto de Oração',
-    description: 'Momento especial de intercessão',
-    date: '2024-03-26T19:30:00.000Z',
-    churchId: 1,
-    active: true
-  },
-  {
-    id: 4,
-    name: 'Ensaio do Coral',
-    description: 'Preparação para apresentação especial',
-    date: '2024-03-27T20:00:00.000Z',
-    churchId: 1,
-    active: true
-  },
-  {
-    id: 5,
-    name: 'Vigília',
-    description: 'Noite de oração e adoração',
-    date: '2024-03-29T23:00:00.000Z',
-    churchId: 1,
-    active: true
-  }
-];
-
 const EventList = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
@@ -83,11 +39,29 @@ const EventList = () => {
     try {
       setLoading(true);
       setError(null);
-      // Usando dados mockados em vez de chamar a API
-      setEvents(mockEvents);
-      setLoading(false);
+      
+      // Buscar eventos da API
+      const response = await fetch('http://localhost:3000/event', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao carregar eventos');
+      }
+
+      const responseData = await response.json();
+      console.log('Resposta da API:', responseData);
+      
+      // Acessar o array de eventos dentro do objeto data
+      setEvents(responseData.data || []);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao carregar eventos');
+      console.error('Erro ao carregar eventos:', err);
+      setError(err.message || 'Erro ao carregar eventos');
+    } finally {
       setLoading(false);
     }
   };
@@ -144,9 +118,9 @@ const EventList = () => {
       }
 
       handleCloseDialog();
-      loadEvents();
+      loadEvents(); // Recarrega a lista após criar/atualizar
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao salvar evento');
+      setError(err.message || 'Erro ao salvar evento');
     } finally {
       setLoading(false);
     }
@@ -158,9 +132,9 @@ const EventList = () => {
         setLoading(true);
         setError(null);
         await eventService.delete(id);
-        loadEvents();
+        loadEvents(); // Recarrega a lista após deletar
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Erro ao excluir evento');
+        setError(err.message || 'Erro ao excluir evento');
       } finally {
         setLoading(false);
       }
@@ -222,14 +196,18 @@ const EventList = () => {
                   <TableRow key={event.id}>
                     <TableCell>{event.name}</TableCell>
                     <TableCell>{event.description}</TableCell>
-                    <TableCell>
-                      {formatDate(event.date)}
-                    </TableCell>
+                    <TableCell>{formatDate(event.date)}</TableCell>
                     <TableCell align="right">
-                      <IconButton onClick={() => handleOpenDialog(event)}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleOpenDialog(event)}
+                      >
                         <EditIcon />
                       </IconButton>
-                      <IconButton onClick={() => handleDelete(event.id)}>
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDelete(event.id)}
+                      >
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
@@ -239,50 +217,53 @@ const EventList = () => {
             </Table>
           </TableContainer>
         )}
-      </Paper>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <form onSubmit={handleSubmit}>
-          <DialogTitle>
-            {selectedEvent ? 'Editar Evento' : 'Novo Evento'}
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <form onSubmit={handleSubmit}>
+            <DialogTitle>
+              {selectedEvent ? 'Editar Evento' : 'Novo Evento'}
+            </DialogTitle>
+            <DialogContent>
               <TextField
+                fullWidth
                 label="Nome"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                margin="normal"
                 required
-                fullWidth
               />
               <TextField
+                fullWidth
                 label="Descrição"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                required
-                fullWidth
+                margin="normal"
                 multiline
-                rows={3}
+                rows={4}
+                required
               />
               <TextField
-                label="Data"
+                fullWidth
                 type="date"
+                label="Data"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                margin="normal"
                 required
-                fullWidth
-                InputLabelProps={{ shrink: true }}
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancelar</Button>
-            <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? <CircularProgress size={24} /> : 'Salvar'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog}>Cancelar</Button>
+              <Button type="submit" variant="contained" disabled={loading}>
+                {loading ? <CircularProgress size={24} /> : 'Salvar'}
+              </Button>
+            </DialogActions>
+          </form>
+        </Dialog>
+      </Paper>
     </Container>
   );
 };

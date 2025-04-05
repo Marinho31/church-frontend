@@ -65,6 +65,8 @@ class EventService {
       method: 'GET',
       headers
     });
+    
+   
 
     console.log('Debug - Response status:', response.status);
     console.log('Debug - Response headers:', [...response.headers.entries()]);
@@ -90,6 +92,7 @@ class EventService {
 
     return response.json();
   }
+  
 
   async update(id: number, event: Partial<Omit<Event, 'id' | 'active' | 'churchId'>>) {
     const response = await fetch(`${this.baseUrl}/event/${id}`, {
