@@ -195,9 +195,15 @@ const EventList = () => {
       setLoading(true);
       setError(null);
 
+      // Create date object and adjust for timezone
+      const date = new Date(formData.date);
+      const timezoneOffset = date.getTimezoneOffset();
+      date.setMinutes(date.getMinutes() + timezoneOffset);
+      date.setHours(15, 0, 0, 0); // Set to 3 PM UTC
+
       const eventData = {
         ...formData,
-        date: new Date(formData.date).toISOString(),
+        date: date.toISOString(),
         churchId: 1, // TODO: Pegar da igreja do usuário logado
       };
 
