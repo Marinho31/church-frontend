@@ -16,44 +16,117 @@ export interface Member {
   neighborhood: string;
   address: string;
   state: string;
-  holySpiritBaptismDate?: string;
-  holySpiritBaptismPlace?: string;
+  holySpiritBaptismPlace: string;
   civilState: CivilState;
-  baptismDate?: string;
-  baptismPlace?: string;
-  recommendationLetter?: string;
-  recommendationLetterDate?: string;
+  baptismDate: string;
+  baptismPlace: string;
+  recommendationLetter: string;
+  recommendationLetterDate: string;
   cpf: string;
   nationality: string;
   filiation: string;
   profession: string;
   birthPlace: string;
   churchId: number;
+  active: boolean;
 }
 
-class MemberService {
-  async create(member: Omit<Member, 'id'>) {
-    const response = await api.post('/members', member);
-    return response.data;
-  }
+interface MemberFilters {
+  churchId?: number;
+  page?: number;
+  size?: number;
+  name?: string;
+}
 
-  async getAll() {
-    const response = await api.get('/members');
-    return response.data;
+export interface CreateMemberData extends Omit<Member, 'id' | 'active'> {}
+
+class MemberService {
+  async getAll(filters?: MemberFilters) {
+    try {
+      console.log('Debug - Getting all members with filters:', filters);
+      const params = new URLSearchParams();
+      
+      // Sempre inclui o churchId=1 por padrão
+      params.append('churchId', '1');
+      
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && key !== 'churchId') { // Ignora churchId dos filtros
+            params.append(key, value.toString());
+          }
+        });
+      }
+
+      const queryString = params.toString();
+      const url = `/members?${queryString}`;
+      
+      console.log('Debug - Request URL:', url);
+      const response = await api.get(url);
+      console.log('Debug - GetAll response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Debug - GetAll error:', error);
+      throw error;
+    }
   }
 
   async getById(id: number) {
-    const response = await api.get(`/members/${id}`);
-    return response.data;
+    try {
+      console.log('Debug - Starting getById request for member:', id);
+      
+      const token = localStorage.getItem('token');
+      console.log('Debug - Token present:', !!token);
+      
+      const url = `/members/${id}`;
+      console.log('Debug - Request URL:', url);
+      
+      const response = await api.get(url);
+      console.log('Debug - GetById raw response:', response);
+      
+      return response.data;
+    } catch (error) {
+      console.error('Debug - GetById error details:', error);
+      throw error;
+    }
   }
 
-  async update(id: number, member: Partial<Omit<Member, 'id'>>) {
-    const response = await api.patch(`/members/${id}`, member);
-    return response.data;
+  async create(member: CreateMemberData) {
+    try {
+      console.log('Debug - Creating member:', member);
+      const response = await api.post('/members', {
+        ...member,
+        active: true
+      });
+      console.log('Debug - Create response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Debug - Create error:', error);
+      throw error;
+    }
+  }
+
+  async update(id: number, member: Partial<Omit<Member, 'id' | 'active' | 'churchId'>>) {
+    try {
+      console.log('Debug - Updating member:', id, member);
+      const response = await api.patch(`/members/${id}`, member);
+      console.log('Debug - Update response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Debug - Update error:', error);
+      throw error;
+    }
   }
 
   async delete(id: number) {
-    await api.delete(`/members/${id}`);
+    try {
+      console.log('Debug - Deleting member:', id);
+      const response = await api.delete(`/members/${id}`);
+      console.log('Debug - Delete response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Debug - Delete error:', error);
+      throw error;
+    }
   }
 }
 

@@ -1,110 +1,59 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Button,
+  Container,
   Paper,
+  Typography,
+  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
   IconButton,
-  Tooltip,
-  CircularProgress,
+  Box,
   Alert,
+  CircularProgress,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-} from '@mui/icons-material';
-import { memberService, Member, MemberRole } from '../services/memberService';
-
-// Dados mockados para visualização inicial
-const mockMembers: Member[] = [
-  {
-    id: 1,
-    fullName: 'João da Silva',
-    role: 'PASTOR',
-    phone: '(11) 98765-4321',
-    birthDate: '1980-05-15T00:00:00.000Z',
-    sex: 'MALE',
-    zipCode: '01234-567',
-    city: 'São Paulo',
-    neighborhood: 'Centro',
-    address: 'Rua das Flores, 123',
-    state: 'SP',
-    civilState: 'MARRIED',
-    cpf: '123.456.789-00',
-    nationality: 'Brasileiro',
-    filiation: 'José da Silva e Maria da Silva',
-    profession: 'Pastor',
-    birthPlace: 'São Paulo',
-    churchId: 1,
-    active: true
-  },
-  {
-    id: 2,
-    fullName: 'Maria Santos',
-    role: 'DEACON',
-    phone: '(11) 98888-7777',
-    birthDate: '1990-03-20T00:00:00.000Z',
-    sex: 'FEMALE',
-    zipCode: '04567-890',
-    city: 'São Paulo',
-    neighborhood: 'Vila Mariana',
-    address: 'Av. Paulista, 1000',
-    state: 'SP',
-    civilState: 'SINGLE',
-    cpf: '987.654.321-00',
-    nationality: 'Brasileira',
-    filiation: 'Pedro Santos e Ana Santos',
-    profession: 'Professora',
-    birthPlace: 'Rio de Janeiro',
-    churchId: 1,
-    active: true
-  },
-  {
-    id: 3,
-    fullName: 'José Oliveira',
-    role: 'MEMBER',
-    phone: '(11) 99999-6666',
-    birthDate: '1995-12-10T00:00:00.000Z',
-    sex: 'MALE',
-    zipCode: '08765-432',
-    city: 'São Paulo',
-    neighborhood: 'Pinheiros',
-    address: 'Rua dos Pinheiros, 500',
-    state: 'SP',
-    civilState: 'SINGLE',
-    cpf: '456.789.123-00',
-    nationality: 'Brasileiro',
-    filiation: 'Carlos Oliveira e Sandra Oliveira',
-    profession: 'Engenheiro',
-    birthPlace: 'São Paulo',
-    churchId: 1,
-    active: true
-  }
-];
+import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
+import { memberService, Member } from '../services/memberService';
 
 const MemberList = () => {
   const navigate = useNavigate();
   const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadMembers = async () => {
     try {
+      console.log('Loading members...'); // Debug log
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found, redirecting to login...'); // Debug log
+        navigate('/login', { replace: true });
+        return;
+      }
+
       setLoading(true);
       setError(null);
-      // Usando dados mockados em vez de chamar a API
-      setMembers(mockMembers);
-    } catch (err) {
-      setError('Erro ao carregar membros. Por favor, tente novamente.');
-      console.error('Erro ao carregar membros:', err);
+      
+      const response = await memberService.getAll();
+      console.log('Members loaded:', response); // Debug log
+      
+      // Filtra apenas os membros ativos
+      if (response && response.data) {
+        const activeMembers = response.data.filter((member: Member) => member.active);
+        setMembers(activeMembers);
+      } else {
+        setMembers([]);
+      }
+    } catch (err: any) {
+      console.error('Error loading members:', err);
+      setError(err.message || 'Erro ao carregar membros');
+      if (err.response?.status === 401) {
+        navigate('/login', { replace: true });
+      }
     } finally {
       setLoading(false);
     }
@@ -114,119 +63,131 @@ const MemberList = () => {
     loadMembers();
   }, []);
 
+  const handleEdit = async (id: number) => {
+    try {
+      console.log('handleEdit called with id:', id);
+      
+      // Primeiro faz a requisição GET para /members/:id
+      console.log('Making GET request to /members/' + id);
+      const response = await memberService.getById(id);
+      
+      if (response) {
+        console.log('Member data received:', response);
+        // Navega para a tela de edição com o ID correto
+        navigate(`/members/edit/${id}`);
+      }
+    } catch (err: any) {
+      console.error('Error fetching member:', err);
+      setError(err.message || 'Erro ao carregar dados do membro');
+    }
+  };
+
+  const handleIconClick = (id: number) => {
+    console.log('Edit icon clicked for member:', id); // Debug log
+    handleEdit(id);
+  };
+
   const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este membro?')) {
       try {
+        setLoading(true);
+        setError(null);
         await memberService.delete(id);
-        await loadMembers(); // Recarrega a lista
-      } catch (err) {
-        setError('Erro ao excluir membro. Por favor, tente novamente.');
-        console.error('Erro ao excluir membro:', err);
+        loadMembers(); // Recarrega a lista após deletar
+      } catch (err: any) {
+        setError(err.message || 'Erro ao excluir membro');
+      } finally {
+        setLoading(false);
       }
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '-';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR');
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return dateString;
+    }
   };
 
-  const getRoleName = (role: MemberRole) => {
-    const roleNames = {
-      MEMBER: 'Membro',
-      COLLABORATOR: 'Colaborador',
-      PASTOR: 'Pastor',
-      PRESBYTER: 'Presbítero',
-      EVANGELIST: 'Evangelista',
-      DEACON: 'Diácono'
-    };
-    return roleNames[role] || role;
+  const formatPhone = (phone: string) => {
+    return phone.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3');
   };
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h5" component="h1">
-          Lista de Membros
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => navigate('/members/new')}
-        >
-          Novo Membro
-        </Button>
-      </Box>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4" component="h1">
+            Lista de Membros
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/members/new')}
+          >
+            Novo Membro
+          </Button>
+        </Box>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Nome</TableCell>
-              <TableCell>Cargo</TableCell>
-              <TableCell>Telefone</TableCell>
-              <TableCell>Data de Nascimento</TableCell>
-              <TableCell>Cidade</TableCell>
-              <TableCell align="center">Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {members.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} align="center">
-                  Nenhum membro cadastrado
-                </TableCell>
-              </TableRow>
-            ) : (
-              members.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell>{member.fullName}</TableCell>
-                  <TableCell>{getRoleName(member.role)}</TableCell>
-                  <TableCell>{member.phone}</TableCell>
-                  <TableCell>{formatDate(member.birthDate)}</TableCell>
-                  <TableCell>{member.city}</TableCell>
-                  <TableCell align="center">
-                    <Tooltip title="Editar">
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>Cargo</TableCell>
+                  <TableCell>Telefone</TableCell>
+                  <TableCell>Data de Nascimento</TableCell>
+                  <TableCell>Cidade</TableCell>
+                  <TableCell align="right">Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {members.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell>{member.fullName}</TableCell>
+                    <TableCell>{member.role}</TableCell>
+                    <TableCell>{formatPhone(member.phone)}</TableCell>
+                    <TableCell>{formatDate(member.birthDate)}</TableCell>
+                    <TableCell>{member.city}</TableCell>
+                    <TableCell align="right">
                       <IconButton
-                        onClick={() => navigate(`/members/edit/${member.id}`)}
-                        size="small"
+                        color="primary"
+                        onClick={() => handleIconClick(member.id)}
                       >
                         <EditIcon />
                       </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Excluir">
                       <IconButton
-                        onClick={() => handleDelete(member.id)}
-                        size="small"
                         color="error"
+                        onClick={() => handleDelete(member.id)}
                       >
                         <DeleteIcon />
                       </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
+    </Container>
   );
 };
 
