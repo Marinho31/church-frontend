@@ -1,29 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  Container,
-  Paper,
-  Typography,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Box,
-  Alert,
-  CircularProgress,
-  Grid,
-} from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Search as SearchIcon, Home as HomeIcon } from '@mui/icons-material';
+import { DataTable } from '@/components/ui/data-table';
+import { Button } from '@/components/ui/button';
+import { Plus, Pencil, Trash2, Home } from 'lucide-react';
 import { eventService, Event } from '../services/eventService';
+import { cn } from '@/lib/utils';
+import { ColumnDef } from '@tanstack/react-table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const EventList = () => {
   const navigate = useNavigate();
@@ -141,10 +133,10 @@ const EventList = () => {
     loadAllEvents();
   }, [location.pathname]);
 
-  const handleFilterChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilterChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: e.target.value
     }));
   };
 
@@ -189,7 +181,7 @@ const EventList = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       setLoading(true);
@@ -250,174 +242,154 @@ const EventList = () => {
     }
   };
 
-  return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton
-              color="primary"
-              onClick={() => navigate('/menu')}
-              sx={{ mr: 1 }}
+  const columns: ColumnDef<Event>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Nome',
+    },
+    {
+      accessorKey: 'description',
+      header: 'Descrição',
+    },
+    {
+      accessorKey: 'date',
+      header: 'Data',
+      cell: ({ row }) => formatDate(row.getValue('date')),
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const event = row.original;
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleOpenDialog(event)}
             >
-              <HomeIcon sx={{ fontSize: 32 }} />
-            </IconButton>
-            <Typography variant="h4" component="h1">
-              Agenda
-            </Typography>
-          </Box>
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDelete(event.id)}
+              className="text-destructive hover:text-destructive-foreground"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/menu')}
           >
-            Novo Evento
+            <Home className="h-6 w-6" />
           </Button>
-        </Box>
+          <h2 className="text-2xl font-semibold tracking-tight">Agenda</h2>
+        </div>
+        <Button onClick={() => handleOpenDialog()}>
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Evento
+        </Button>
+      </div>
 
-        {/* Filtros de data */}
-        <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                type="date"
-                label="Data Inicial"
-                value={filters.startDate}
-                onChange={handleFilterChange('startDate')}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                type="date"
-                label="Data Final"
-                value={filters.endDate}
-                onChange={handleFilterChange('endDate')}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<SearchIcon />}
-                  onClick={handleSearch}
-                >
-                  Buscar
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={handleClearFilters}
-                >
-                  Limpar
-                </Button>
-              </Box>
-            </Grid>
-          </Grid>
-        </Paper>
+      <div className="grid gap-4 md:grid-cols-3">
+        <div>
+          <Label htmlFor="startDate">Data Inicial</Label>
+          <Input
+            id="startDate"
+            type="date"
+            value={filters.startDate}
+            onChange={handleFilterChange('startDate')}
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">Data Final</Label>
+          <Input
+            id="endDate"
+            type="date"
+            value={filters.endDate}
+            onChange={handleFilterChange('endDate')}
+          />
+        </div>
+        <div className="flex items-end gap-2">
+          <Button onClick={handleSearch} className="flex-1">
+            Buscar
+          </Button>
+          <Button variant="outline" onClick={handleClearFilters}>
+            Limpar
+          </Button>
+        </div>
+      </div>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+      <div className="rounded-md border">
+        <DataTable
+          columns={columns}
+          data={events}
+        />
+      </div>
 
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nome</TableCell>
-                  <TableCell>Descrição</TableCell>
-                  <TableCell>Data</TableCell>
-                  <TableCell align="right">Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {events.map((event) => (
-                  <TableRow key={event.id}>
-                    <TableCell>{event.name}</TableCell>
-                    <TableCell>{event.description}</TableCell>
-                    <TableCell>{formatDate(event.date)}</TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleOpenDialog(event)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDelete(event.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-          <form onSubmit={handleSubmit}>
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent>
+          <DialogHeader>
             <DialogTitle>
               {selectedEvent ? 'Editar Evento' : 'Novo Evento'}
             </DialogTitle>
-            <DialogContent>
-              <TextField
-                fullWidth
-                label="Nome"
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                margin="normal"
+                onChange={handleChange}
                 required
               />
-              <TextField
-                fullWidth
-                label="Descrição"
+            </div>
+            <div>
+              <Label htmlFor="description">Descrição</Label>
+              <Input
+                id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                margin="normal"
-                multiline
-                rows={4}
+                onChange={handleChange}
                 required
               />
-              <TextField
-                fullWidth
+            </div>
+            <div>
+              <Label htmlFor="date">Data</Label>
+              <Input
+                id="date"
                 type="date"
-                label="Data"
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                margin="normal"
+                onChange={handleChange}
                 required
-                InputLabelProps={{
-                  shrink: true,
-                }}
               />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDialog}>Cancelar</Button>
-              <Button type="submit" variant="contained" disabled={loading}>
-                {loading ? <CircularProgress size={24} /> : 'Salvar'}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" type="button" onClick={handleCloseDialog}>
+                Cancelar
               </Button>
-            </DialogActions>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </div>
           </form>
-        </Dialog>
-      </Paper>
-    </Container>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

@@ -1,23 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Paper,
-  Typography,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Box,
-  Alert,
-  CircularProgress,
-} from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Home as HomeIcon } from '@mui/icons-material';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { DataTable } from '@/components/ui/data-table';
+import { Button } from '@/components/ui/button';
+import { Plus, Pencil, Trash2, Home } from 'lucide-react';
 import { memberService, Member } from '../services/memberService';
+import { cn } from '@/lib/utils';
+import { ColumnDef } from '@tanstack/react-table';
 
 const MemberList = () => {
   const navigate = useNavigate();
@@ -82,11 +70,6 @@ const MemberList = () => {
     }
   };
 
-  const handleIconClick = (id: number) => {
-    console.log('Edit icon clicked for member:', id); // Debug log
-    handleEdit(id);
-  };
-
   const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este membro?')) {
       try {
@@ -119,84 +102,81 @@ const MemberList = () => {
     return phone.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3');
   };
 
-  return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton
-              color="primary"
-              onClick={() => navigate('/menu')}
-              sx={{ mr: 1 }}
+  const columns: ColumnDef<Member>[] = [
+    {
+      accessorKey: 'fullName',
+      header: 'Nome',
+    },
+    {
+      accessorKey: 'role',
+      header: 'Cargo',
+    },
+    {
+      accessorKey: 'phone',
+      header: 'Telefone',
+      cell: ({ row }) => formatPhone(row.getValue('phone')),
+    },
+    {
+      accessorKey: 'birthDate',
+      header: 'Data de Nascimento',
+      cell: ({ row }) => formatDate(row.getValue('birthDate')),
+    },
+    {
+      accessorKey: 'city',
+      header: 'Cidade',
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const member = row.original;
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleEdit(member.id)}
             >
-              <HomeIcon sx={{ fontSize: 32 }} />
-            </IconButton>
-            <Typography variant="h4" component="h1">
-              Lista de Membros
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/members/new')}
-          >
-            Novo Membro
-          </Button>
-        </Box>
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDelete(member.id)}
+              className="text-destructive hover:text-destructive-foreground"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+  if (error) {
+    return (
+      <div className="rounded-md bg-destructive/15 p-4 text-destructive">
+        {error}
+      </div>
+    );
+  }
 
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nome</TableCell>
-                  <TableCell>Cargo</TableCell>
-                  <TableCell>Telefone</TableCell>
-                  <TableCell>Data de Nascimento</TableCell>
-                  <TableCell>Cidade</TableCell>
-                  <TableCell align="right">Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {members.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell>{member.fullName}</TableCell>
-                    <TableCell>{member.role}</TableCell>
-                    <TableCell>{formatPhone(member.phone)}</TableCell>
-                    <TableCell>{formatDate(member.birthDate)}</TableCell>
-                    <TableCell>{member.city}</TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleIconClick(member.id)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDelete(member.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </Paper>
-    </Container>
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold tracking-tight">Lista de Membros</h2>
+        <Button onClick={() => navigate('/members/new')}>
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Membro
+        </Button>
+      </div>
+
+      <div className="rounded-md border">
+        <DataTable
+          columns={columns}
+          data={members}
+        />
+      </div>
+    </div>
   );
 };
 

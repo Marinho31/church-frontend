@@ -1,222 +1,125 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import {
-  Button,
-  Container,
-  Grid,
-  Typography,
-  Paper,
-  Menu as MuiMenu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Box,
-  Breadcrumbs,
-  Link
-} from '@mui/material';
-import {
-  Person as PersonIcon,
-  CalendarMonth as CalendarIcon,
-  ExitToApp as LogoutIcon,
-  Add as AddIcon,
-  List as ListIcon,
-  Home as HomeIcon
-} from '@mui/icons-material';
+  LogOut,
+  Users,
+  Calendar,
+  Plus,
+  List,
+  Home,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface MenuItem {
+  title: string;
+  icon: React.ElementType;
+  description: string;
+  color: string;
+  onClick: () => void;
+  submenu?: {
+    title: string;
+    icon: React.ElementType;
+    path: string;
+    description: string;
+  }[];
+}
 
 const Menu: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [membrosAnchorEl, setMembrosAnchorEl] = useState<null | HTMLElement>(null);
 
-  const handleMembrosClick = (event: React.MouseEvent<HTMLElement>) => {
-    setMembrosAnchorEl(event.currentTarget);
-  };
-
-  const handleMembrosClose = () => {
-    setMembrosAnchorEl(null);
-  };
-
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       title: 'Membros',
-      icon: <PersonIcon sx={{ fontSize: 40 }} />,
-      onClick: handleMembrosClick,
-      color: '#1976d2',
+      icon: Users,
       description: 'Gerenciar membros da igreja',
+      color: 'bg-roxo',
+      onClick: () => navigate('/members/list'),
       submenu: [
         {
           title: 'Cadastrar Membro',
-          icon: <AddIcon />,
+          icon: Plus,
           path: '/members/new',
           description: 'Adicionar novo membro'
         },
         {
           title: 'Listar Membros',
-          icon: <ListIcon />,
+          icon: List,
           path: '/members/list',
           description: 'Visualizar e gerenciar membros'
         }
       ]
     },
     {
-      title: 'Calendário',
-      icon: <CalendarIcon sx={{ fontSize: 40 }} />,
-      path: '/calendar',
-      color: '#2e7d32',
-      description: 'Agenda de eventos e atividades'
-    },
-    {
-      title: 'Eventos',
-      icon: <CalendarIcon sx={{ fontSize: 40 }} />,
-      path: '/events',
-      color: '#9c27b0',
-      description: 'Gerenciar eventos da igreja'
+      title: 'Agenda',
+      icon: Calendar,
+      description: 'Gerenciar eventos e atividades',
+      color: 'bg-bordo',
+      onClick: () => navigate('/events'),
     }
   ];
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, item: typeof menuItems[0]) => {
-    if (item.submenu) {
-      handleMembrosClick(event);
-    } else if (item.path) {
-      navigate(item.path);
-    }
-  };
-
-  const handleSubmenuClick = (path: string) => {
-    handleMembrosClose();
-    navigate(path);
-  };
-
   const handleLogout = () => {
     logout();
+    navigate('/login');
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Breadcrumbs */}
-      <Box mb={4}>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link
-            color="inherit"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/menu');
-            }}
-            sx={{ display: 'flex', alignItems: 'center' }}
-          >
-            <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
-            Início
-          </Link>
-        </Breadcrumbs>
-      </Box>
-
-      <Paper elevation={0} sx={{ p: 3, backgroundColor: 'transparent' }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
+    <div className="container mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-primary">
           Bem-vindo, {user?.fullName}
-        </Typography>
+        </h1>
+      </div>
 
-        <Grid container spacing={4}>
-          {menuItems.map((item) => (
-            <Grid item xs={12} sm={6} key={item.title}>
-              <Paper
-                elevation={3}
-                sx={{
-                  p: 4,
-                  height: '100%',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 6
-                  },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 2,
-                  position: 'relative'
-                }}
-                onClick={(event) => handleMenuClick(event, item)}
-              >
-                <div style={{ color: item.color }}>{item.icon}</div>
-                <div style={{ textAlign: 'center' }}>
-                  <Typography variant="h6" gutterBottom>
-                    {item.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {item.description}
-                  </Typography>
-                </div>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* Submenu de Membros */}
-        <MuiMenu
-          anchorEl={membrosAnchorEl}
-          open={Boolean(membrosAnchorEl)}
-          onClose={handleMembrosClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
-          }}
-          PaperProps={{
-            elevation: 3,
-            sx: {
-              mt: 1,
-              minWidth: 200,
-              '& .MuiMenuItem-root': {
-                py: 1.5
-              }
-            }
-          }}
-        >
-          {menuItems[0].submenu?.map((item) => (
-            <MenuItem 
-              key={item.title} 
-              onClick={() => handleSubmenuClick(item.path)}
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'action.hover'
-                }
-              }}
+      <div className="grid gap-6 md:grid-cols-2">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.title}
+              className={cn(
+                "group relative overflow-hidden rounded-lg border p-6 hover:shadow-md transition-all",
+                "hover:scale-[1.02] active:scale-[0.98]"
+              )}
+              onClick={item.onClick}
+              role="button"
+              tabIndex={0}
             >
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText 
-                primary={item.title}
-                secondary={item.description}
-              />
-            </MenuItem>
-          ))}
-        </MuiMenu>
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "rounded-full p-3",
+                  item.color,
+                  "text-white"
+                )}>
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-        <Button
-          variant="outlined"
-          color="error"
-          startIcon={<LogoutIcon />}
-          onClick={handleLogout}
-          sx={{ 
-            mt: 6, 
-            display: 'block', 
-            mx: 'auto',
-            '&:hover': {
-              backgroundColor: 'error.main',
-              color: 'white'
-            }
-          }}
-        >
-          Sair
-        </Button>
-      </Paper>
-    </Container>
+      <button
+        onClick={handleLogout}
+        className={cn(
+          "mt-8 flex items-center gap-2 rounded-lg px-4 py-2",
+          "text-destructive hover:bg-destructive hover:text-destructive-foreground",
+          "transition-colors"
+        )}
+      >
+        <LogOut className="h-5 w-5" />
+        <span>Sair</span>
+      </button>
+    </div>
   );
 };
 
