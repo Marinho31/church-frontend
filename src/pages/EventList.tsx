@@ -22,7 +22,7 @@ import {
   CircularProgress,
   Grid,
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Search as SearchIcon, Home as HomeIcon } from '@mui/icons-material';
 import { eventService, Event } from '../services/eventService';
 
 const EventList = () => {
@@ -254,9 +254,18 @@ const EventList = () => {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h1">
-            Agenda
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton
+              color="primary"
+              onClick={() => navigate('/menu')}
+              sx={{ mr: 1 }}
+            >
+              <HomeIcon sx={{ fontSize: 32 }} />
+            </IconButton>
+            <Typography variant="h4" component="h1">
+              Agenda
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={<AddIcon />}

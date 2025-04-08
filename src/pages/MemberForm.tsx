@@ -12,7 +12,9 @@ import {
   CircularProgress,
   Box,
   Divider,
+  IconButton,
 } from '@mui/material';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { memberService, Member, MemberRole, Sex, CivilState, CreateMemberData } from '../services/memberService';
 
 // Enums para os selects
@@ -173,9 +175,18 @@ const MemberForm = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {id ? 'Edição de Membro' : 'Novo Membro'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <IconButton
+            color="primary"
+            onClick={() => navigate('/members/list')}
+            sx={{ p: 1 }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 32 }} />
+          </IconButton>
+          <Typography variant="h4" component="h1" gutterBottom>
+            {id ? 'Edição de Membro' : 'Novo Membro'}
+          </Typography>
+        </Box>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
