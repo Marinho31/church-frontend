@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Alert, CircularProgress, Typography, IconButton } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
-import PasswordStrength from '../components/PasswordStrength';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Eye, EyeOff, Moon } from 'lucide-react';
 import { authService } from '../services/authService';
 
 // Validação de senha
@@ -67,15 +68,14 @@ const Login = () => {
       highContrast ? 'bg-black' : 'bg-gradient-to-b from-blue-50 to-white'
     }`}>
       {/* Botão de Acessibilidade */}
-      <button
+      <Button
         onClick={() => setHighContrast(!highContrast)}
-        className="fixed top-4 right-4 p-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-300"
-        aria-label="Alternar alto contraste"
+        className="fixed top-4 right-4"
+        variant="outline"
+        size="icon"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
-      </button>
+        <Moon className="h-[1.2rem] w-[1.2rem]" />
+      </Button>
 
       <div className={`w-full max-w-[440px] ${highContrast ? 'bg-black' : 'bg-white'} rounded-2xl shadow-2xl p-8 transition-all duration-300`}>
         <div className="text-center mb-8">
@@ -94,132 +94,112 @@ const Login = () => {
         </div>
 
         {error && (
-          <Alert 
-            severity="error" 
-            className="mb-6"
-            role="alert"
-            sx={{
-              borderRadius: '12px',
-              '& .MuiAlert-icon': { color: '#ef4444' }
-            }}
-          >
+          <div className="mb-6 rounded-md bg-destructive/15 p-4 text-sm text-destructive" role="alert">
             {error}
-          </Alert>
+          </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-6" autoComplete="off">
           <div className="space-y-2">
-            <label 
+            <Label 
               htmlFor="email" 
-              className={`block text-base font-medium ${highContrast ? 'text-white' : 'text-gray-700'}`}
+              className={highContrast ? 'text-white' : ''}
             >
               Email
-            </label>
-            <div className="relative">
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl text-base transition-all duration-300
-                  ${highContrast 
-                    ? 'bg-gray-900 text-white border-2 border-white focus:border-blue-400' 
-                    : 'bg-gray-50 text-gray-900 border border-gray-200 focus:border-blue-500'
-                  }
-                  focus:outline-none focus:ring-2 focus:ring-blue-200`}
-                placeholder="Digite seu email"
-                required
-                disabled={loading}
-                autoComplete="off"
-                aria-label="Email"
-                aria-required="true"
-              />
-            </div>
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`${highContrast 
+                ? 'bg-gray-900 text-white border-2 border-white focus:border-blue-400' 
+                : ''
+              }`}
+              placeholder="Digite seu email"
+              required
+              disabled={loading}
+              autoComplete="off"
+            />
           </div>
 
           <div className="space-y-2">
-            <label 
+            <Label 
               htmlFor="password" 
-              className={`block text-base font-medium ${highContrast ? 'text-white' : 'text-gray-700'}`}
+              className={highContrast ? 'text-white' : ''}
             >
               Senha
-            </label>
+            </Label>
             <div className="relative">
-              <input
+              <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={`w-full px-4 py-3 pr-12 rounded-xl text-base transition-all duration-300
-                  ${highContrast 
-                    ? 'bg-gray-900 text-white border-2 border-white focus:border-blue-400' 
-                    : 'bg-gray-50 text-gray-900 border border-gray-200 focus:border-blue-500'
-                  }
-                  focus:outline-none focus:ring-2 focus:ring-blue-200`}
+                className={`${highContrast 
+                  ? 'bg-gray-900 text-white border-2 border-white focus:border-blue-400' 
+                  : ''
+                }`}
                 placeholder="Digite sua senha"
                 required
                 disabled={loading}
                 autoComplete="new-password"
-                aria-label="Senha"
-                aria-required="true"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <IconButton
-                  onClick={() => setShowPassword(!showPassword)}
-                  edge="end"
-                  size="small"
-                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                  className={highContrast ? 'text-white' : 'text-gray-500'}
-                >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-1/2 -translate-y-1/2"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
             </div>
           </div>
 
           {password && (
             <div className={`p-4 rounded-xl ${highContrast ? 'bg-gray-900' : 'bg-gray-50'}`}>
-              <PasswordStrength password={password} />
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    password.length >= 8 ? 'bg-green-500' : 'bg-red-500'
+                  }`}
+                  style={{
+                    width: `${Math.min((password.length / 8) * 100, 100)}%`,
+                  }}
+                />
+              </div>
+              <p className={`mt-2 text-sm ${highContrast ? 'text-white' : 'text-gray-600'}`}>
+                {password.length < 8
+                  ? 'A senha deve ter pelo menos 8 caracteres'
+                  : 'Senha forte'}
+              </p>
             </div>
           )}
 
           {email && remainingAttempts < 3 && (
-            <Typography
-              variant="body2"
-              color={highContrast ? "error" : "warning"}
-              className="text-center font-medium"
+            <p
+              className={`text-center font-medium ${
+                highContrast ? 'text-red-400' : 'text-yellow-600'
+              }`}
               role="alert"
             >
               Tentativas restantes: {remainingAttempts}
-            </Typography>
+            </p>
           )}
 
-          <button
+          <Button
             type="submit"
-            className={`w-full py-4 px-4 rounded-xl text-white text-lg font-semibold transition-all duration-300 mt-6
-              ${loading || remainingAttempts === 0
-                ? 'opacity-60 cursor-not-allowed'
-                : highContrast
-                  ? 'bg-white text-black hover:bg-gray-200'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }
-              focus:outline-none focus:ring-4 focus:ring-blue-300`}
+            className="w-full"
             disabled={loading || remainingAttempts === 0}
-            aria-label={loading ? 'Carregando...' : 'Entrar'}
           >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              'Entrar'
-            )}
-          </button>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </Button>
         </form>
-      </div>
-
-      <div className="mt-8 text-center w-full max-w-[440px]">
-        <p className={`text-sm ${highContrast ? 'text-white' : 'text-gray-600'}`}>
-          © {new Date().getFullYear()} Maranata. Todos os direitos reservados.
-        </p>
       </div>
     </div>
   );

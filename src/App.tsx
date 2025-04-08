@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/Login';
@@ -10,23 +10,21 @@ import EventList from './pages/EventList';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Navigate to="/menu" replace />} />
-          
-          {/* Rotas protegidas com Layout */}
-          <Route path="/" element={<Layout />}>
-            <Route path="menu" element={<Menu />} />
-            <Route path="members">
-              <Route path="list" element={<MemberList />} />
-              <Route path="new" element={<MemberForm />} />
-              <Route path="edit/:id" element={<MemberForm />} />
-            </Route>
-            <Route path="events" element={<EventList />} />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Navigate to="/menu" replace />} />
+        
+        {/* Rotas protegidas com Layout */}
+        <Route path="/" element={<Layout />}>
+          <Route path="menu" element={<Menu />} />
+          <Route path="members">
+            <Route path="list" element={<MemberList />} />
+            <Route path="new" element={<MemberForm />} />
+            <Route path="edit/:id" element={<MemberForm />} />
           </Route>
-        </Routes>
-      </Router>
+          <Route path="events" element={<EventList />} />
+        </Route>
+      </Routes>
     </AuthProvider>
   );
 }

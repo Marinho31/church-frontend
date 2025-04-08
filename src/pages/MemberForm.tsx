@@ -12,25 +12,29 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
-import { Member, MemberRole, Sex, CivilState, CreateMemberData, memberService } from '../services/memberService';
+import { Member, CreateMemberData, memberService } from '../services/memberService';
+import type { MemberRole, Sex, CivilState } from '../services/memberService';
 
 // Enums para os selects
 const roles = [
-  { value: MemberRole.MEMBRO, label: 'Membro' },
-  { value: MemberRole.LIDER, label: 'Líder' },
-  { value: MemberRole.PASTOR, label: 'Pastor' },
+  { value: 'MEMBER', label: 'Membro' },
+  { value: 'COLLABORATOR', label: 'Colaborador' },
+  { value: 'PASTOR', label: 'Pastor' },
+  { value: 'PRESBYTER', label: 'Presbítero' },
+  { value: 'EVANGELIST', label: 'Evangelista' },
+  { value: 'DEACON', label: 'Diácono' },
 ];
 
 const sexOptions = [
-  { value: Sex.MASCULINO, label: 'Masculino' },
-  { value: Sex.FEMININO, label: 'Feminino' },
+  { value: 'MALE', label: 'Masculino' },
+  { value: 'FEMALE', label: 'Feminino' },
 ];
 
 const civilStates = [
-  { value: CivilState.SOLTEIRO, label: 'Solteiro(a)' },
-  { value: CivilState.CASADO, label: 'Casado(a)' },
-  { value: CivilState.DIVORCIADO, label: 'Divorciado(a)' },
-  { value: CivilState.VIUVO, label: 'Viúvo(a)' },
+  { value: 'SINGLE', label: 'Solteiro(a)' },
+  { value: 'MARRIED', label: 'Casado(a)' },
+  { value: 'DIVORCED', label: 'Divorciado(a)' },
+  { value: 'WIDOWED', label: 'Viúvo(a)' },
 ];
 
 const holySpiritOptions = [
@@ -45,11 +49,11 @@ const MemberForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateMemberData>({
     fullName: '',
-    role: MemberRole.MEMBRO,
+    role: 'MEMBER',
     phone: '',
     birthDate: '',
-    sex: Sex.MASCULINO,
-    civilState: CivilState.SOLTEIRO,
+    sex: 'MALE',
+    civilState: 'SINGLE',
     city: '',
     neighborhood: '',
     street: '',

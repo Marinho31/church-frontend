@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  ChevronLeft as ChevronLeftIcon,
   People as PeopleIcon,
   Event as EventIcon,
   Church as ChurchIcon,
