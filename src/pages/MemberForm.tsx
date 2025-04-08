@@ -42,6 +42,9 @@ const holySpiritOptions = [
   { value: 'NAO', label: 'Não' },
 ];
 
+const inputStyles = "border-[#333333] focus:border-[#333333] focus-visible:ring-[#333333] focus:ring-[#333333]";
+const selectTriggerStyles = "border-[#333333] focus:border-[#333333] focus-visible:ring-[#333333] focus:ring-[#333333] data-[placeholder]:text-[#333333]";
+
 const MemberForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -56,10 +59,22 @@ const MemberForm = () => {
     civilState: 'SINGLE',
     city: '',
     neighborhood: '',
-    street: '',
+    address: '',
     number: '',
     complement: '',
-    holySpiritBaptismPlace: 'NAO',
+    zipCode: '',
+    state: '',
+    cpf: '',
+    nationality: 'Brasileiro',
+    profession: '',
+    filiation: '',
+    birthPlace: '',
+    baptismDate: '',
+    baptismPlace: '',
+    holySpiritBaptism: 'NAO',
+    holySpiritBaptismDate: '',
+    holySpiritBaptismPlace: '',
+    recommendationLetterDate: '',
     recommendationLetter: '',
     churchId: 1,
   });
@@ -151,8 +166,8 @@ const MemberForm = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6 flex items-center gap-4">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="icon"
@@ -160,39 +175,40 @@ const MemberForm = () => {
         >
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight text-[#333333]">
           {id ? 'Editar Membro' : 'Novo Membro'}
         </h1>
       </div>
 
       {error && (
-        <div className="mb-6 rounded-md bg-destructive/15 p-4 text-sm text-destructive">
+        <div className="rounded-md bg-destructive/15 p-4 text-destructive">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-lg border bg-card p-6">
-          <h2 className="mb-4 text-lg font-medium">Informações Pessoais</h2>
+          <h2 className="mb-4 text-lg font-medium bg-[#333333] text-white p-2 rounded-md">Informações Pessoais</h2>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nome Completo</Label>
+              <Label htmlFor="fullName">Nome completo *</Label>
               <Input
                 id="fullName"
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
                 required
+                className={inputStyles}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Cargo</Label>
+              <Label htmlFor="role">Função na igreja *</Label>
               <Select
                 value={formData.role}
                 onValueChange={handleSelectChange('role')}
               >
-                <SelectTrigger>
+                <SelectTrigger className={selectTriggerStyles}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -206,18 +222,19 @@ const MemberForm = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Telefone</Label>
+              <Label htmlFor="phone">Telefone *</Label>
               <Input
                 id="phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 required
+                className={inputStyles}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="birthDate">Data de Nascimento</Label>
+              <Label htmlFor="birthDate">Data de nascimento *</Label>
               <Input
                 id="birthDate"
                 name="birthDate"
@@ -225,16 +242,17 @@ const MemberForm = () => {
                 value={formData.birthDate}
                 onChange={handleChange}
                 required
+                className={inputStyles}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="sex">Sexo</Label>
+              <Label htmlFor="sex">Sexo *</Label>
               <Select
                 value={formData.sex}
                 onValueChange={handleSelectChange('sex')}
               >
-                <SelectTrigger>
+                <SelectTrigger className={selectTriggerStyles}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -248,12 +266,12 @@ const MemberForm = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="civilState">Estado Civil</Label>
+              <Label htmlFor="civilState">Estado Civil *</Label>
               <Select
                 value={formData.civilState}
                 onValueChange={handleSelectChange('civilState')}
               >
-                <SelectTrigger>
+                <SelectTrigger className={selectTriggerStyles}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -265,42 +283,130 @@ const MemberForm = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cpf">CPF *</Label>
+              <Input
+                id="cpf"
+                name="cpf"
+                value={formData.cpf}
+                onChange={handleChange}
+                required
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="nationality">Nacionalidade *</Label>
+              <Input
+                id="nationality"
+                name="nationality"
+                value={formData.nationality}
+                onChange={handleChange}
+                required
+                placeholder="Brasileiro"
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="profession">Profissão *</Label>
+              <Input
+                id="profession"
+                name="profession"
+                value={formData.profession}
+                onChange={handleChange}
+                required
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="filiation">Filiação (nome dos pais) *</Label>
+              <Input
+                id="filiation"
+                name="filiation"
+                value={formData.filiation}
+                onChange={handleChange}
+                required
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="birthPlace">Local de nascimento *</Label>
+              <Input
+                id="birthPlace"
+                name="birthPlace"
+                value={formData.birthPlace}
+                onChange={handleChange}
+                required
+                className={inputStyles}
+              />
+            </div>
           </div>
         </div>
 
         <div className="rounded-lg border bg-card p-6">
-          <h2 className="mb-4 text-lg font-medium">Endereço</h2>
+          <h2 className="mb-4 text-lg font-medium bg-[#333333] text-white p-2 rounded-md">Endereço</h2>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="city">Cidade</Label>
+              <Label htmlFor="zipCode">CEP *</Label>
+              <Input
+                id="zipCode"
+                name="zipCode"
+                value={formData.zipCode}
+                onChange={handleChange}
+                required
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="city">Cidade *</Label>
               <Input
                 id="city"
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
                 required
+                className={inputStyles}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="neighborhood">Bairro</Label>
+              <Label htmlFor="state">Estado *</Label>
+              <Input
+                id="state"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                required
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="neighborhood">Bairro *</Label>
               <Input
                 id="neighborhood"
                 name="neighborhood"
                 value={formData.neighborhood}
                 onChange={handleChange}
                 required
+                className={inputStyles}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="street">Rua</Label>
+              <Label htmlFor="address">Endereço *</Label>
               <Input
-                id="street"
-                name="street"
-                value={formData.street}
+                id="address"
+                name="address"
+                value={formData.address}
                 onChange={handleChange}
                 required
+                className={inputStyles}
               />
             </div>
 
@@ -311,7 +417,7 @@ const MemberForm = () => {
                 name="number"
                 value={formData.number}
                 onChange={handleChange}
-                required
+                className={inputStyles}
               />
             </div>
 
@@ -322,33 +428,87 @@ const MemberForm = () => {
                 name="complement"
                 value={formData.complement}
                 onChange={handleChange}
+                className={inputStyles}
               />
             </div>
           </div>
         </div>
 
         <div className="rounded-lg border bg-card p-6">
-          <h2 className="mb-4 text-lg font-medium">Informações da Igreja</h2>
+          <h2 className="mb-4 text-lg font-medium bg-[#333333] text-white p-2 rounded-md">Informações Religiosas</h2>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="holySpiritBaptismPlace">
-                Batismo com Espírito Santo
-              </Label>
+              <Label htmlFor="baptismDate">Data do Batismo</Label>
+              <Input
+                id="baptismDate"
+                name="baptismDate"
+                type="date"
+                value={formData.baptismDate}
+                onChange={handleChange}
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="baptismPlace">Local do Batismo</Label>
+              <Input
+                id="baptismPlace"
+                name="baptismPlace"
+                value={formData.baptismPlace}
+                onChange={handleChange}
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="holySpiritBaptism">Batismo com Espírito Santo</Label>
               <Select
-                value={formData.holySpiritBaptismPlace}
-                onValueChange={handleSelectChange('holySpiritBaptismPlace')}
+                value={formData.holySpiritBaptism}
+                onValueChange={handleSelectChange('holySpiritBaptism')}
               >
-                <SelectTrigger>
+                <SelectTrigger className={selectTriggerStyles}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {holySpiritOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="SIM">Sim</SelectItem>
+                  <SelectItem value="NAO">Não</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="holySpiritBaptismDate">Data do Batismo com Espírito Santo</Label>
+              <Input
+                id="holySpiritBaptismDate"
+                name="holySpiritBaptismDate"
+                type="date"
+                value={formData.holySpiritBaptismDate}
+                onChange={handleChange}
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="holySpiritBaptismPlace">Local do Batismo com Espírito Santo</Label>
+              <Input
+                id="holySpiritBaptismPlace"
+                name="holySpiritBaptismPlace"
+                value={formData.holySpiritBaptismPlace}
+                onChange={handleChange}
+                className={inputStyles}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="recommendationLetterDate">Data da Carta de Recomendação</Label>
+              <Input
+                id="recommendationLetterDate"
+                name="recommendationLetterDate"
+                type="date"
+                value={formData.recommendationLetterDate}
+                onChange={handleChange}
+                className={inputStyles}
+              />
             </div>
 
             <div className="space-y-2">
@@ -358,7 +518,8 @@ const MemberForm = () => {
                 name="recommendationLetter"
                 type="file"
                 onChange={handleFileChange}
-                accept=".pdf,.svg,.png,.jpg,.jpeg"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                className={inputStyles}
               />
             </div>
           </div>
@@ -369,10 +530,11 @@ const MemberForm = () => {
             type="button"
             variant="outline"
             onClick={() => navigate('/members/list')}
+            className="border-[#333333] hover:bg-[#333333] hover:text-white"
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" className="bg-[#333333] hover:bg-[#333333]/90 text-white" disabled={loading}>
             {loading ? 'Salvando...' : id ? 'Atualizar' : 'Criar'}
           </Button>
         </div>

@@ -3,6 +3,7 @@ import api from './api';
 export type MemberRole = 'MEMBER' | 'COLLABORATOR' | 'PASTOR' | 'PRESBYTER' | 'EVANGELIST' | 'DEACON';
 export type Sex = 'MALE' | 'FEMALE';
 export type CivilState = 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
+export type HolySpiritBaptism = 'SIM' | 'NAO';
 
 export interface Member {
   id: number;
@@ -15,18 +16,22 @@ export interface Member {
   city: string;
   neighborhood: string;
   address: string;
+  number?: string;
+  complement?: string;
   state: string;
-  holySpiritBaptismPlace: string;
   civilState: CivilState;
-  baptismDate: string;
-  baptismPlace: string;
-  recommendationLetter: string;
-  recommendationLetterDate: string;
   cpf: string;
   nationality: string;
   filiation: string;
   profession: string;
   birthPlace: string;
+  baptismDate?: string;
+  baptismPlace?: string;
+  holySpiritBaptism: HolySpiritBaptism;
+  holySpiritBaptismDate?: string;
+  holySpiritBaptismPlace?: string;
+  recommendationLetterDate?: string;
+  recommendationLetter?: string;
   churchId: number;
   active: boolean;
 }

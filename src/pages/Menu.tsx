@@ -35,7 +35,7 @@ const Menu: React.FC = () => {
       title: 'Membros',
       icon: Users,
       description: 'Gerenciar membros da igreja',
-      color: 'bg-roxo',
+      color: 'bg-[#333333]',
       onClick: () => navigate('/members/list'),
       submenu: [
         {
@@ -56,7 +56,7 @@ const Menu: React.FC = () => {
       title: 'Agenda',
       icon: Calendar,
       description: 'Gerenciar eventos e atividades',
-      color: 'bg-bordo',
+      color: 'bg-[#333333]',
       onClick: () => navigate('/events'),
     }
   ];
@@ -69,7 +69,7 @@ const Menu: React.FC = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-primary">
+        <h1 className="text-2xl font-semibold text-[#333333]">
           Bem-vindo, {user?.fullName}
         </h1>
       </div>
@@ -97,7 +97,7 @@ const Menu: React.FC = () => {
                   <Icon className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">{item.title}</h3>
+                  <h3 className="font-semibold text-[#333333]">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">
                     {item.description}
                   </p>
@@ -112,7 +112,7 @@ const Menu: React.FC = () => {
         onClick={handleLogout}
         className={cn(
           "mt-8 flex items-center gap-2 rounded-lg px-4 py-2",
-          "text-destructive hover:bg-destructive hover:text-destructive-foreground",
+          "text-[#333333] hover:bg-[#333333] hover:text-white",
           "transition-colors"
         )}
       >

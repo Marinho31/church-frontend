@@ -45,10 +45,10 @@ export function Layout() {
                   "flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-bordo text-white"
-                    : "text-[#000080] hover:bg-accent hover:text-accent-foreground"
+                    : "text-[#333333] hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <Icon className={cn("h-5 w-5", isActive ? "" : "text-[#000080]")} />
+                <Icon className={cn("h-5 w-5", isActive ? "" : "text-[#333333]")} />
                 <span>{item.label}</span>
               </Link>
             );

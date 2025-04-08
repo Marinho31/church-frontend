@@ -163,8 +163,8 @@ const MemberList = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight">Lista de Membros</h2>
-        <Button onClick={() => navigate('/members/new')}>
+        <h2 className="text-2xl font-semibold tracking-tight text-[#333333]">Lista de Membros</h2>
+        <Button onClick={() => navigate('/members/new')} className="bg-[#333333] hover:bg-[#333333]/90 text-white">
           <Plus className="mr-2 h-4 w-4" />
           Novo Membro
         </Button>
