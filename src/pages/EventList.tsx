@@ -2,17 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, Home } from 'lucide-react';
-import { eventService, Event } from '../services/eventService';
-import { cn } from '@/lib/utils';
-import { ColumnDef } from '@tanstack/react-table';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { eventService } from '../services/eventService';
+import type { Event } from '../services/eventService';
+import type { ColumnDef } from '@tanstack/react-table';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +20,6 @@ const EventList = () => {
   const location = useLocation();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [formData, setFormData] = useState({
@@ -49,7 +46,6 @@ const EventList = () => {
       }
 
       setLoading(true);
-      setError(null);
       
       const response = await eventService.getAll();
       console.log('All events loaded:', response); // Debug log
@@ -62,7 +58,6 @@ const EventList = () => {
       }
     } catch (err: any) {
       console.error('Error loading events:', err);
-      setError(err.message || 'Erro ao carregar eventos');
       if (err.response?.status === 401) {
         navigate('/login', { replace: true });
       }
@@ -83,10 +78,9 @@ const EventList = () => {
       }
 
       setLoading(true);
-      setError(null);
       
       if (!filters.startDate || !filters.endDate) {
-        setError('Por favor, selecione as datas inicial e final para filtrar');
+        console.error('Por favor, selecione as datas inicial e final para filtrar');
         setLoading(false);
         return;
       }
@@ -115,7 +109,6 @@ const EventList = () => {
       }
     } catch (err: any) {
       console.error('Error loading filtered events:', err);
-      setError(err.message || 'Erro ao carregar eventos filtrados');
       if (err.response?.status === 401) {
         navigate('/login', { replace: true });
       }
@@ -182,7 +175,6 @@ const EventList = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      setError(null);
 
       // Create date object and adjust for timezone
       const date = new Date(formData.date);
@@ -205,7 +197,7 @@ const EventList = () => {
       handleCloseDialog();
       loadAllEvents(); // Recarrega a lista após criar/atualizar
     } catch (err: any) {
-      setError(err.message || 'Erro ao salvar evento');
+      console.error('Error submitting event:', err);
     } finally {
       setLoading(false);
     }
@@ -215,11 +207,10 @@ const EventList = () => {
     if (window.confirm('Tem certeza que deseja excluir este evento?')) {
       try {
         setLoading(true);
-        setError(null);
         await eventService.delete(id);
         loadAllEvents(); // Recarrega a lista após deletar
       } catch (err: any) {
-        setError(err.message || 'Erro ao excluir evento');
+        console.error('Error deleting event:', err);
       } finally {
         setLoading(false);
       }
@@ -284,19 +275,14 @@ const EventList = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  if (loading) {
+    return <div className="flex justify-center items-center p-4">Carregando...</div>;
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/menu')}
-          >
-            <Home className="h-6 w-6" />
-          </Button>
-          <h2 className="text-2xl font-semibold tracking-tight text-[#333333]">Agenda</h2>
-        </div>
+    <div className="container mx-auto p-6 space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-semibold tracking-tight text-[#333333]">Lista de Eventos</h2>
         <Button onClick={() => handleOpenDialog()} className="bg-[#333333] hover:bg-[#333333]/90 text-white">
           <Plus className="mr-2 h-4 w-4" />
           Novo Evento

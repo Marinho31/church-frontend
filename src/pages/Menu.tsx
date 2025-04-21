@@ -1,14 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 import {
   LogOut,
   Users,
   Calendar,
   Plus,
   List,
-  Home,
+
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

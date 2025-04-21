@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,10 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { ArrowLeft } from 'lucide-react';
-import { Member, CreateMemberData, memberService } from '../services/memberService';
-import type { MemberRole, Sex, CivilState } from '../services/memberService';
+import { memberService } from '../services/memberService';
+import type { CreateMemberData, HolySpiritBaptism, DeactivationFlag } from '../services/memberService';
 
 // Enums para os selects
 const roles = [
@@ -25,11 +23,6 @@ const roles = [
   { value: 'DEACON', label: 'Diácono' },
 ];
 
-const sexOptions = [
-  { value: 'MALE', label: 'Masculino' },
-  { value: 'FEMALE', label: 'Feminino' },
-];
-
 const civilStates = [
   { value: 'SINGLE', label: 'Solteiro(a)' },
   { value: 'MARRIED', label: 'Casado(a)' },
@@ -37,85 +30,107 @@ const civilStates = [
   { value: 'WIDOWED', label: 'Viúvo(a)' },
 ];
 
-const holySpiritOptions = [
-  { value: 'SIM', label: 'Sim' },
-  { value: 'NAO', label: 'Não' },
-];
-
 const inputStyles = "border-[#333333] focus:border-[#333333] focus-visible:ring-[#333333] focus:ring-[#333333]";
 const selectTriggerStyles = "border-[#333333] focus:border-[#333333] focus-visible:ring-[#333333] focus:ring-[#333333] data-[placeholder]:text-[#333333]";
+
+const deactivationOptions = [
+  { value: 'ABANDONO', label: 'Abandono' },
+  { value: 'FALECIMENTO', label: 'Falecimento' },
+  { value: 'MUDANCA', label: 'Mudança' },
+  { value: 'OUTROS', label: 'Outros' },
+];
+
+const initialFormData: CreateMemberData = {
+  name: '',
+  function: '',
+  phone: '',
+  birthDate: '',
+  gender: '',
+  maritalStatus: '',
+  cpf: '',
+  nationality: '',
+  profession: '',
+  filiation: '',
+  birthPlace: '',
+  zipCode: '',
+  city: '',
+  state: '',
+  neighborhood: '',
+  address: '',
+  number: '',
+  complement: '',
+  baptismDate: '',
+  baptismPlace: '',
+  holySpiritBaptism: undefined,
+  holySpiritBaptismDate: '',
+  holySpiritBaptismPlace: '',
+  recommendationLetter: undefined,
+  recommendationLetterDate: '',
+  deactivationFlag: undefined,
+};
 
 const MemberForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<CreateMemberData>({
-    fullName: '',
-    role: 'MEMBER',
-    phone: '',
-    birthDate: '',
-    sex: 'MALE',
-    civilState: 'SINGLE',
-    city: '',
-    neighborhood: '',
-    address: '',
-    number: '',
-    complement: '',
-    zipCode: '',
-    state: '',
-    cpf: '',
-    nationality: 'Brasileiro',
-    profession: '',
-    filiation: '',
-    birthPlace: '',
-    baptismDate: '',
-    baptismPlace: '',
-    holySpiritBaptism: 'NAO',
-    holySpiritBaptismDate: '',
-    holySpiritBaptismPlace: '',
-    recommendationLetterDate: '',
-    recommendationLetter: '',
-    churchId: 1,
-  });
+  const [formData, setFormData] = useState<CreateMemberData>(initialFormData);
+  const [isActive, setIsActive] = useState(false);
+  const [showDeactivationFlag, setShowDeactivationFlag] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      loadMember(parseInt(id));
-    }
-  }, [id]);
+    const loadMember = async () => {
+      if (!id) return;
 
-  const loadMember = async (memberId: number) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await memberService.getById(memberId);
-      setFormData(response.data);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao carregar membro');
-      if (err.response?.status === 401) {
-        navigate('/login', { replace: true });
+      try {
+        setLoading(true);
+        const response = await memberService.getById(Number(id));
+        if (response?.data) {
+          setFormData(response.data);
+          setIsActive(response.data.active || false);
+          setShowDeactivationFlag(!response.data.active);
+        }
+      } catch (err: any) {
+        console.error('Error loading member:', err);
+        if (err.response?.status === 401) {
+          navigate('/login', { replace: true });
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    loadMember();
+  }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       setLoading(true);
-      setError(null);
+
+      const memberData = {
+        ...formData,
+        active: isActive,
+      };
+
+      if (!isActive && !memberData.deactivationFlag) {
+        alert('Por favor, selecione um motivo para desativar o membro.');
+        setLoading(false);
+        return;
+      }
+
+      if (isActive) {
+        // Se o membro está ativo, remova a flag de desativação
+        delete memberData.deactivationFlag;
+      }
 
       if (id) {
-        await memberService.update(parseInt(id), formData);
+        await memberService.update(parseInt(id), memberData);
       } else {
-        await memberService.create(formData);
+        await memberService.create(memberData);
       }
 
       navigate('/members/list');
     } catch (err: any) {
-      setError(err.message || 'Erro ao salvar membro');
       if (err.response?.status === 401) {
         navigate('/login', { replace: true });
       }
@@ -124,8 +139,7 @@ const MemberForm = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [name]: value,
@@ -139,18 +153,24 @@ const MemberForm = () => {
     }));
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setFormData(prev => ({
-          ...prev,
-          recommendationLetter: base64String.split(',')[1],
-        }));
-      };
-      reader.readAsDataURL(file);
+    setFormData((prev) => ({
+      ...prev,
+      recommendationLetter: file || undefined
+    }));
+  };
+
+  const handleActiveChange = (checked: boolean) => {
+    setIsActive(checked);
+    setShowDeactivationFlag(!checked);
+    
+    if (checked) {
+      // Limpar a flag de desativação se o membro for ativado
+      setFormData(prev => ({
+        ...prev,
+        deactivationFlag: undefined
+      }));
     }
   };
 
@@ -167,46 +187,27 @@ const MemberForm = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate('/members/list')}
-        >
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
-        <h1 className="text-2xl font-semibold tracking-tight text-[#333333]">
-          {id ? 'Editar Membro' : 'Novo Membro'}
-        </h1>
-      </div>
-
-      {error && (
-        <div className="rounded-md bg-destructive/15 p-4 text-destructive">
-          {error}
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-lg border bg-card p-6">
           <h2 className="mb-4 text-lg font-medium bg-[#333333] text-white p-2 rounded-md">Informações Pessoais</h2>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nome completo *</Label>
+              <Label htmlFor="name">Nome completo *</Label>
               <Input
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
                 required
                 className={inputStyles}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Função na igreja *</Label>
+              <Label htmlFor="function">Função na igreja *</Label>
               <Select
-                value={formData.role}
-                onValueChange={handleSelectChange('role')}
+                value={formData.function}
+                onValueChange={handleSelectChange('function')}
               >
                 <SelectTrigger className={selectTriggerStyles}>
                   <SelectValue />
@@ -227,7 +228,7 @@ const MemberForm = () => {
                 id="phone"
                 name="phone"
                 value={formData.phone}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -240,36 +241,33 @@ const MemberForm = () => {
                 name="birthDate"
                 type="date"
                 value={formData.birthDate}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('birthDate', e.target.value)}
                 required
                 className={inputStyles}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="sex">Sexo *</Label>
+              <Label htmlFor="gender">Sexo *</Label>
               <Select
-                value={formData.sex}
-                onValueChange={handleSelectChange('sex')}
+                value={formData.gender}
+                onValueChange={(value) => handleInputChange('gender', value)}
               >
-                <SelectTrigger className={selectTriggerStyles}>
-                  <SelectValue />
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {sexOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="MASCULINO">Masculino</SelectItem>
+                  <SelectItem value="FEMININO">Feminino</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="civilState">Estado Civil *</Label>
+              <Label htmlFor="maritalStatus">Estado Civil *</Label>
               <Select
-                value={formData.civilState}
-                onValueChange={handleSelectChange('civilState')}
+                value={formData.maritalStatus}
+                onValueChange={handleSelectChange('maritalStatus')}
               >
                 <SelectTrigger className={selectTriggerStyles}>
                   <SelectValue />
@@ -290,7 +288,7 @@ const MemberForm = () => {
                 id="cpf"
                 name="cpf"
                 value={formData.cpf}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('cpf', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -302,7 +300,7 @@ const MemberForm = () => {
                 id="nationality"
                 name="nationality"
                 value={formData.nationality}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('nationality', e.target.value)}
                 required
                 placeholder="Brasileiro"
                 className={inputStyles}
@@ -315,7 +313,7 @@ const MemberForm = () => {
                 id="profession"
                 name="profession"
                 value={formData.profession}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('profession', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -327,7 +325,7 @@ const MemberForm = () => {
                 id="filiation"
                 name="filiation"
                 value={formData.filiation}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('filiation', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -339,7 +337,7 @@ const MemberForm = () => {
                 id="birthPlace"
                 name="birthPlace"
                 value={formData.birthPlace}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('birthPlace', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -356,7 +354,7 @@ const MemberForm = () => {
                 id="zipCode"
                 name="zipCode"
                 value={formData.zipCode}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('zipCode', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -368,7 +366,7 @@ const MemberForm = () => {
                 id="city"
                 name="city"
                 value={formData.city}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('city', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -380,7 +378,7 @@ const MemberForm = () => {
                 id="state"
                 name="state"
                 value={formData.state}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('state', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -392,7 +390,7 @@ const MemberForm = () => {
                 id="neighborhood"
                 name="neighborhood"
                 value={formData.neighborhood}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('neighborhood', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -404,7 +402,7 @@ const MemberForm = () => {
                 id="address"
                 name="address"
                 value={formData.address}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('address', e.target.value)}
                 required
                 className={inputStyles}
               />
@@ -416,7 +414,7 @@ const MemberForm = () => {
                 id="number"
                 name="number"
                 value={formData.number}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('number', e.target.value)}
                 className={inputStyles}
               />
             </div>
@@ -427,7 +425,7 @@ const MemberForm = () => {
                 id="complement"
                 name="complement"
                 value={formData.complement}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('complement', e.target.value)}
                 className={inputStyles}
               />
             </div>
@@ -444,7 +442,7 @@ const MemberForm = () => {
                 name="baptismDate"
                 type="date"
                 value={formData.baptismDate}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('baptismDate', e.target.value)}
                 className={inputStyles}
               />
             </div>
@@ -455,7 +453,7 @@ const MemberForm = () => {
                 id="baptismPlace"
                 name="baptismPlace"
                 value={formData.baptismPlace}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('baptismPlace', e.target.value)}
                 className={inputStyles}
               />
             </div>
@@ -464,10 +462,10 @@ const MemberForm = () => {
               <Label htmlFor="holySpiritBaptism">Batismo com Espírito Santo</Label>
               <Select
                 value={formData.holySpiritBaptism}
-                onValueChange={handleSelectChange('holySpiritBaptism')}
+                onValueChange={(value: HolySpiritBaptism) => handleInputChange('holySpiritBaptism', value)}
               >
-                <SelectTrigger className={selectTriggerStyles}>
-                  <SelectValue />
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="SIM">Sim</SelectItem>
@@ -483,7 +481,7 @@ const MemberForm = () => {
                 name="holySpiritBaptismDate"
                 type="date"
                 value={formData.holySpiritBaptismDate}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('holySpiritBaptismDate', e.target.value)}
                 className={inputStyles}
               />
             </div>
@@ -494,7 +492,7 @@ const MemberForm = () => {
                 id="holySpiritBaptismPlace"
                 name="holySpiritBaptismPlace"
                 value={formData.holySpiritBaptismPlace}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('holySpiritBaptismPlace', e.target.value)}
                 className={inputStyles}
               />
             </div>
@@ -506,7 +504,7 @@ const MemberForm = () => {
                 name="recommendationLetterDate"
                 type="date"
                 value={formData.recommendationLetterDate}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange('recommendationLetterDate', e.target.value)}
                 className={inputStyles}
               />
             </div>
@@ -524,6 +522,49 @@ const MemberForm = () => {
             </div>
           </div>
         </div>
+
+        {id && (
+          <div className="rounded-lg border bg-card p-6">
+            <h2 className="mb-4 text-lg font-medium bg-[#333333] text-white p-2 rounded-md">Status do Membro</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="active">Status do Membro</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="active"
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => handleActiveChange(e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  <span>{isActive ? 'Ativo' : 'Inativo'}</span>
+                </div>
+              </div>
+
+              {showDeactivationFlag && (
+                <div className="space-y-2">
+                  <Label htmlFor="deactivationFlag">Motivo da Desativação *</Label>
+                  <Select
+                    value={formData.deactivationFlag}
+                    onValueChange={(value: DeactivationFlag) => handleInputChange('deactivationFlag', value)}
+                    required={!isActive}
+                  >
+                    <SelectTrigger className={selectTriggerStyles}>
+                      <SelectValue placeholder="Selecione um motivo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {deactivationOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end gap-4">
           <Button

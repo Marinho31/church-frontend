@@ -44,7 +44,7 @@ export const eventService = {
       Authorization: `Bearer ${token}`,
     };
 
-    const response = await api.put(`/${id}`, data, { headers });
+    const response = await api.patch(`/${id}`, data, { headers });
     return response;
   },
 

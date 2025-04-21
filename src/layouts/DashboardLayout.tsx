@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Drawer,
@@ -28,6 +28,7 @@ import {
   List as ListIcon,
   PersonAdd as PersonAddIcon,
 } from '@mui/icons-material';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const drawerWidth = 240;
@@ -42,6 +43,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
   const { logout, user } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
 
   const handleDrawerToggle = () => {
@@ -52,6 +54,36 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     setMembersOpen(!membersOpen);
   };
 
+  const getPageTitle = () => {
+    if (location.pathname.includes('/members/edit')) {
+      return 'Edição de Membro';
+    }
+    if (location.pathname.includes('/members/new')) {
+      return 'Cadastro de Membro';
+    }
+    if (location.pathname === '/menu' || location.pathname === '/') {
+      return 'Menu Principal';
+    }
+    if (location.pathname.includes('/members/list')) {
+      return 'Lista de Membros';
+    }
+    return '';
+  };
+
+  const showBackButton = () => {
+    return location.pathname.includes('/members/edit') || 
+           location.pathname.includes('/members/new') ||
+           location.pathname.includes('/members/list');
+  };
+
+  const handleBack = () => {
+    if (location.pathname.includes('/members/edit') || location.pathname.includes('/members/new')) {
+      navigate('/members/list');
+    } else if (location.pathname.includes('/members/list')) {
+      navigate('/menu');
+    }
+  };
+
   const menuItems = [
     { text: 'Eventos', icon: <EventIcon />, path: '/dashboard/events' },
     { text: 'Ministérios', icon: <VolunteerIcon />, path: '/dashboard/ministries' },
@@ -60,45 +92,92 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const drawer = (
     <div>
-      <Toolbar>
+      <Toolbar 
+        sx={{ 
+          minHeight: '64px',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: '#800020', // Cor vinho
+          color: 'white',
+        }}
+      >
         <Typography variant="h6" noWrap component="div">
           Menu
         </Typography>
       </Toolbar>
       <Divider />
       <List>
-        <ListItem onClick={handleMembersClick}>
+        <ListItem 
+          onClick={handleMembersClick}
+          sx={{ 
+            '&:hover': { 
+              backgroundColor: 'rgba(51, 51, 51, 0.04)' 
+            }
+          }}
+        >
           <ListItemIcon>
-            <PeopleIcon />
+            <PeopleIcon sx={{ color: '#333333' }} />
           </ListItemIcon>
-          <ListItemText primary="Membros" />
-          {membersOpen ? <ExpandLess /> : <ExpandMore />}
+          <ListItemText 
+            primary="Membros" 
+            sx={{ 
+              '& .MuiTypography-root': { 
+                color: '#333333',
+                fontWeight: membersOpen ? 600 : 400
+              } 
+            }} 
+          />
+          {membersOpen ? <ExpandLess sx={{ color: '#333333' }} /> : <ExpandMore sx={{ color: '#333333' }} />}
         </ListItem>
         <Collapse in={membersOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem
               onClick={() => {
-                navigate('/dashboard/members/list');
+                navigate('/members/list');
                 if (isMobile) setMobileOpen(false);
               }}
-              sx={{ pl: 4 }}
+              sx={{ 
+                pl: 4,
+                '&:hover': { 
+                  backgroundColor: 'rgba(51, 51, 51, 0.04)' 
+                }
+              }}
             >
               <ListItemIcon>
-                <ListIcon />
+                <ListIcon sx={{ color: '#333333' }} />
               </ListItemIcon>
-              <ListItemText primary="Lista" />
+              <ListItemText 
+                primary="Lista" 
+                sx={{ 
+                  '& .MuiTypography-root': { 
+                    color: '#333333' 
+                  } 
+                }} 
+              />
             </ListItem>
             <ListItem
               onClick={() => {
-                navigate('/dashboard/members/new');
+                navigate('/members/new');
                 if (isMobile) setMobileOpen(false);
               }}
-              sx={{ pl: 4 }}
+              sx={{ 
+                pl: 4,
+                '&:hover': { 
+                  backgroundColor: 'rgba(51, 51, 51, 0.04)' 
+                }
+              }}
             >
               <ListItemIcon>
-                <PersonAddIcon />
+                <PersonAddIcon sx={{ color: '#333333' }} />
               </ListItemIcon>
-              <ListItemText primary="Novo" />
+              <ListItemText 
+                primary="Novo" 
+                sx={{ 
+                  '& .MuiTypography-root': { 
+                    color: '#333333' 
+                  } 
+                }} 
+              />
             </ListItem>
           </List>
         </Collapse>
@@ -110,34 +189,79 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               navigate(item.path);
               if (isMobile) setMobileOpen(false);
             }}
+            sx={{ 
+              '&:hover': { 
+                backgroundColor: 'rgba(51, 51, 51, 0.04)' 
+              }
+            }}
           >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
+            <ListItemIcon>
+              {React.cloneElement(item.icon, { sx: { color: '#333333' } })}
+            </ListItemIcon>
+            <ListItemText 
+              primary={item.text} 
+              sx={{ 
+                '& .MuiTypography-root': { 
+                  color: '#333333' 
+                } 
+              }} 
+            />
           </ListItem>
         ))}
       </List>
       <Divider />
       <List>
-        <ListItem onClick={logout}>
+        <ListItem 
+          onClick={logout}
+          sx={{ 
+            '&:hover': { 
+              backgroundColor: 'rgba(51, 51, 51, 0.04)' 
+            }
+          }}
+        >
           <ListItemIcon>
-            <LogoutIcon />
+            <LogoutIcon sx={{ color: '#333333' }} />
           </ListItemIcon>
-          <ListItemText primary="Sair" />
+          <ListItemText 
+            primary="Sair" 
+            sx={{ 
+              '& .MuiTypography-root': { 
+                color: '#333333' 
+              } 
+            }} 
+          />
         </ListItem>
       </List>
     </div>
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', height: '100vh' }}>
       <AppBar
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
+          bgcolor: 'white',
+          color: '#333333',
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
-        <Toolbar>
+        <Toolbar 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 2,
+            minHeight: '64px',
+            position: 'fixed',
+            top: 0,
+            left: { sm: drawerWidth },
+            right: 0,
+            backgroundColor: 'white',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+          }}
+        >
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -147,10 +271,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Church Management System
-          </Typography>
-          <Typography variant="body1" sx={{ ml: 2 }}>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {showBackButton() && (
+              <IconButton
+                color="inherit"
+                onClick={handleBack}
+                sx={{ padding: '8px' }}
+              >
+                <ArrowLeft />
+              </IconButton>
+            )}
+            <Typography variant="h6" component="div" sx={{ color: '#333333', fontWeight: 600 }}>
+              {getPageTitle()}
+            </Typography>
+          </div>
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          <Typography variant="body1" sx={{ color: '#333333' }}>
             {user?.fullName}
           </Typography>
         </Toolbar>
@@ -158,19 +297,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       <Box
         component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        sx={{ 
+          width: { sm: drawerWidth }, 
+          flexShrink: { sm: 0 },
+        }}
       >
         <Drawer
           variant={isMobile ? 'temporary' : 'permanent'}
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
+              mt: '64px',
+              height: 'calc(100% - 64px)',
             },
           }}
         >
@@ -185,6 +329,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           mt: '64px',
+          height: 'calc(100vh - 64px)',
+          overflow: 'auto',
         }}
       >
         {children}

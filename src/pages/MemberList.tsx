@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, Home } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { memberService, Member } from '../services/memberService';
-import { cn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 
 const MemberList = () => {
@@ -15,10 +14,8 @@ const MemberList = () => {
 
   const loadMembers = async () => {
     try {
-      console.log('Loading members...'); // Debug log
       const token = localStorage.getItem('token');
       if (!token) {
-        console.log('No token found, redirecting to login...'); // Debug log
         navigate('/login', { replace: true });
         return;
       }
@@ -27,10 +24,8 @@ const MemberList = () => {
       setError(null);
       
       const response = await memberService.getAll();
-      console.log('Members loaded:', response); // Debug log
       
-      // Filtra apenas os membros ativos
-      if (response && response.data) {
+      if (response?.data) {
         const activeMembers = response.data.filter((member: Member) => member.active);
         setMembers(activeMembers);
       } else {
@@ -51,32 +46,13 @@ const MemberList = () => {
     loadMembers();
   }, []);
 
-  const handleEdit = async (id: number) => {
-    try {
-      console.log('handleEdit called with id:', id);
-      
-      // Primeiro faz a requisição GET para /members/:id
-      console.log('Making GET request to /members/' + id);
-      const response = await memberService.getById(id);
-      
-      if (response) {
-        console.log('Member data received:', response);
-        // Navega para a tela de edição com o ID correto
-        navigate(`/members/edit/${id}`);
-      }
-    } catch (err: any) {
-      console.error('Error fetching member:', err);
-      setError(err.message || 'Erro ao carregar dados do membro');
-    }
-  };
-
   const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este membro?')) {
       try {
         setLoading(true);
         setError(null);
         await memberService.delete(id);
-        loadMembers(); // Recarrega a lista após deletar
+        loadMembers();
       } catch (err: any) {
         setError(err.message || 'Erro ao excluir membro');
       } finally {
@@ -134,7 +110,7 @@ const MemberList = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleEdit(member.id)}
+              onClick={() => navigate(`/members/edit/${member.id}`)}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -152,6 +128,10 @@ const MemberList = () => {
     },
   ];
 
+  if (loading) {
+    return <div className="flex justify-center items-center p-4">Carregando...</div>;
+  }
+
   if (error) {
     return (
       <div className="rounded-md bg-destructive/15 p-4 text-destructive">
@@ -161,7 +141,7 @@ const MemberList = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="container mx-auto p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold tracking-tight text-[#333333]">Lista de Membros</h2>
         <Button onClick={() => navigate('/members/new')} className="bg-[#333333] hover:bg-[#333333]/90 text-white">

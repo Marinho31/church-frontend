@@ -4,36 +4,37 @@ export type MemberRole = 'MEMBER' | 'COLLABORATOR' | 'PASTOR' | 'PRESBYTER' | 'E
 export type Sex = 'MALE' | 'FEMALE';
 export type CivilState = 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
 export type HolySpiritBaptism = 'SIM' | 'NAO';
+export type DeactivationFlag = 'ABANDONO' | 'FALECIMENTO' | 'MUDANCA' | 'OUTROS';
 
 export interface Member {
   id: number;
-  fullName: string;
-  role: MemberRole;
+  name: string;
+  function: string;
   phone: string;
   birthDate: string;
-  sex: Sex;
+  gender: string;
+  maritalStatus: string;
+  cpf: string;
+  nationality: string;
+  profession: string;
+  filiation: string;
+  birthPlace: string;
   zipCode: string;
   city: string;
+  state: string;
   neighborhood: string;
   address: string;
   number?: string;
   complement?: string;
-  state: string;
-  civilState: CivilState;
-  cpf: string;
-  nationality: string;
-  filiation: string;
-  profession: string;
-  birthPlace: string;
+  active: boolean;
+  deactivationFlag?: DeactivationFlag;
   baptismDate?: string;
   baptismPlace?: string;
-  holySpiritBaptism: HolySpiritBaptism;
+  holySpiritBaptism?: HolySpiritBaptism;
   holySpiritBaptismDate?: string;
   holySpiritBaptismPlace?: string;
+  recommendationLetter?: File;
   recommendationLetterDate?: string;
-  recommendationLetter?: string;
-  churchId: number;
-  active: boolean;
 }
 
 interface MemberFilters {
@@ -43,7 +44,7 @@ interface MemberFilters {
   name?: string;
 }
 
-export interface CreateMemberData extends Omit<Member, 'id' | 'active'> {}
+export type CreateMemberData = Omit<Member, 'id' | 'active'>;
 
 class MemberService {
   async getAll(filters?: MemberFilters) {
@@ -100,7 +101,7 @@ class MemberService {
       console.log('Debug - Creating member:', member);
       const response = await api.post('/members', {
         ...member,
-        active: true
+        active: false
       });
       console.log('Debug - Create response:', response);
       return response.data;
@@ -110,7 +111,7 @@ class MemberService {
     }
   }
 
-  async update(id: number, member: Partial<Omit<Member, 'id' | 'active' | 'churchId'>>) {
+  async update(id: number, member: Partial<Omit<Member, 'id' | 'active' | 'churchId' | 'createdAt' | 'updatedAt'>>) {
     try {
       console.log('Debug - Updating member:', id, member);
       const response = await api.patch(`/members/${id}`, member);
