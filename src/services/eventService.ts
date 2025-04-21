@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 
 export interface Event {
   id: number;
@@ -13,48 +13,24 @@ export interface EventFilters {
   endDate?: string;
 }
 
-const api = axios.create({
-  baseURL: '/event',
-});
-
 export const eventService = {
   async getAll(filters?: EventFilters) {
-    const token = localStorage.getItem('token');
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    const response = await api.get('/', { headers, params: filters });
+    const response = await api.get('/event', { params: filters });
     return response;
   },
 
   async create(data: Omit<Event, 'id'>) {
-    const token = localStorage.getItem('token');
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    const response = await api.post('/', data, { headers });
+    const response = await api.post('/event', data);
     return response;
   },
 
   async update(id: number, data: Partial<Event>) {
-    const token = localStorage.getItem('token');
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    const response = await api.patch(`/${id}`, data, { headers });
+    const response = await api.patch(`/event/${id}`, data);
     return response;
   },
 
   async delete(id: number) {
-    const token = localStorage.getItem('token');
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    const response = await api.delete(`/${id}`, { headers });
+    const response = await api.delete(`/event/${id}`);
     return response;
   },
 };
