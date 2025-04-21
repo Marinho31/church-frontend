@@ -37,7 +37,7 @@ export function DataTable<TData, TValue>({
               {headerGroup.headers.map((header) => {
                 return (
                   <TableHead key={header.id}>
-                    {header.isPlaceholder
+                    {header.isPlaceholder 
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
